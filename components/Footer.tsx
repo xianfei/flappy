@@ -50,7 +50,7 @@ export default function Footer() {
     if (!hasLostRef.current) {
       hasLostRef.current = true;
       const confirmed = window.confirm(
-        `Congrats! Your score is ${score}. You make it to ${score>0?1992+score:0}! \n Click OK to restart the game.`
+        score == 0? "Oops! \n Click OK to restart the game.":`Congrats! Your score is ${score+1}. You make it to ${score>0?1992+score:0}! \n Click OK to restart the game.`
       );
       if (confirmed) {
         restartGame();
