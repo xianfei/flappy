@@ -34,7 +34,7 @@ export default function Pipes() {
             animate={pipes.bottom.position}
             style={pipes.bottom.size}
             className="absolute"
-            children={<Pipe />}
+            children={<Pipe label={pipes.sequence} />}
             transition={{
               ease: "linear",
             }}
@@ -44,8 +44,19 @@ export default function Pipes() {
     </>
   );
 }
-export function Pipe() {
+export function Pipe({ label }: { label?: number }) {
   return (
-    <img src="pipe.png" className="h-full w-full pointer-events-none" alt="" />
+    <div className="relative h-full w-full">
+      <img
+        src="pipe.png"
+        className="h-full w-full pointer-events-none"
+        alt=""
+      />
+      {label !== undefined && (
+        <span className="absolute left-1/2 top-2 -translate-x-1/2 text-white text-lg font-bold drop-shadow">
+          {label + 1990}
+        </span>
+      )}
+    </div>
   );
 }

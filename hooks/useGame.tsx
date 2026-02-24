@@ -31,6 +31,7 @@ const defaultState = {
   pipes: Array(4)
     .fill("")
     .map((_, index) => ({
+      sequence: index + 1,
       top: {
         key: "top" + index,
         position: { x: 0, y: 0 },
@@ -57,6 +58,7 @@ const defaultState = {
     tolerance: 25,
     distance: 10,
     delay: 75,
+    gap: 0,
   },
   rounds: [],
   isStarted: false,
@@ -65,8 +67,9 @@ const defaultState = {
     width: 0,
     height: 0,
   },
+  nextPipeNumber: 1,
   multiplier: {
-    distance: 1.1,
+    distance: 1.5,
     step: 5,
   },
 };
@@ -86,6 +89,7 @@ export type PipeType = {
   key?: string;
 };
 export type PipesType = {
+  sequence: number;
   top: PipeType;
   bottom: PipeType;
 };
@@ -96,6 +100,7 @@ interface GameContext extends GameState {
   handleWindowClick: () => void;
   movePipes: () => void;
   startGame: (window: Size) => void;
+  restartGame: () => void;
 }
 interface GameState {
   bird: {
@@ -125,6 +130,7 @@ interface GameState {
     delay: number;
     distance: number;
     tolerance: number;
+    gap: number;
   };
   rounds: {
     score: number;
@@ -134,6 +140,7 @@ interface GameState {
   isStarted: boolean;
   isReady: boolean;
   window: Size;
+  nextPipeNumber: number;
   multiplier: {
     step: number;
     distance: number;
@@ -174,13 +181,17 @@ export const GameProvider = ({ children }: { children: React.ReactNode }) => {
   };
   const createPipes = (draft: StateDraft) => {
     const window = draft.window;
-    draft.pipe.width = window.width / draft.pipes.length;
+    const gap = window.width / draft.pipes.length;
+    draft.pipe.width = Math.min(WIDTH, gap * 0.8);
     draft.pipe.height = (1 / 3) * window.height;
     draft.pipe.distance = defaultState.pipe.distance;
     draft.pipe.extension = (0.5 / 3) * window.height;
+    draft.pipe.gap = gap;
+    draft.nextPipeNumber = 1;
     draft.pipes.forEach((pipe, index) => {
       const { height, y } = generatePipeExtension(index, draft);
-      var x = (index * 2 + 1) * draft.pipe.width + window.width;
+      var x = window.width + index * (draft.pipe.width + draft.pipe.gap);
+      pipe.sequence = draft.nextPipeNumber++;
       pipe.top.initial = {
         x,
         y: 0,
@@ -203,16 +214,22 @@ export const GameProvider = ({ children }: { children: React.ReactNode }) => {
   };
   const movePipes = () => {
     setState((draft) => {
+      let maxX = Math.max(
+        ...draft.pipes.map((pipe) => pipe.top.position.x)
+      );
       draft.pipes.forEach((pipe, index) => {
         if (pipe.top.position.x + pipe.top.size.width * 2 <= 0) {
           const { height, y } = generatePipeExtension(index, draft);
-          pipe.top.position.x = draft.pipe.width * 2 + draft.window.width;
-          pipe.bottom.position.x = draft.pipe.width * 2 + draft.window.width;
+          const nextX = maxX + draft.pipe.width + draft.pipe.gap;
+          pipe.top.position.x = nextX;
+          pipe.bottom.position.x = nextX;
           pipe.top.size.height = height;
           pipe.bottom.size.height = height;
           pipe.bottom.position.y = y;
           pipe.top.key = v4();
           pipe.bottom.key = v4();
+          pipe.sequence = draft.nextPipeNumber++;
+          maxX = nextX;
           increaseScore(draft);
           multiplySpeed(draft);
         }
@@ -241,6 +258,21 @@ export const GameProvider = ({ children }: { children: React.ReactNode }) => {
         return draft;
       });
     }
+  };
+  const restartGame = () => {
+    setState((draft) => {
+      draft.isStarted = true;
+      draft.rounds.push({
+        score: 0,
+        datetime: new Date().toISOString(),
+        key: v4(),
+      });
+      draft.bird.isFlying = true;
+      draft.bird.animate.rotate = [0, 0];
+      setBirdCenter(draft);
+      createPipes(draft);
+      return draft;
+    });
   };
   // Bird Functions
   const setBirdCenter = (draft: StateDraft) => {
@@ -315,6 +347,7 @@ export const GameProvider = ({ children }: { children: React.ReactNode }) => {
         handleWindowClick,
         movePipes,
         startGame,
+        restartGame,
       }}
     >
       {children}

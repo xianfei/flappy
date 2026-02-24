@@ -19,7 +19,7 @@ export default function Game() {
   return (
     <motion.main
       layout
-      className="m-auto overflow-hidden flex flex-col max-w-[480px] border-8 border-zinc-200 rounded-xl bg-[#ded895]   relative max-h-[800px] w-full h-full"
+      className="m-auto overflow-hidden flex flex-col max-w-[1200px] border-8 border-zinc-200 rounded-xl bg-[#ded895]   relative max-h-[800px] w-full h-full"
     >
       <Background />
       <motion.div
