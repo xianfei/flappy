@@ -50,7 +50,7 @@ export default function Footer() {
     if (!hasLostRef.current) {
       hasLostRef.current = true;
       const confirmed = window.confirm(
-        `你失败了！分数：${score>0?1992+score:0}。点击确定重新开始游戏。\nYou lose! Score: ${score>0?1992+score:0}. Click OK to restart the game.`
+        `Congrats! Your score is ${score}. You make it to ${score>0?1992+score:0}! \n Click OK to restart the game.`
       );
       if (confirmed) {
         restartGame();
